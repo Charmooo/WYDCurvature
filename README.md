@@ -32,14 +32,14 @@ PetzCurvature's names (namespace `PetzCurvature`).
 
 ## Building
 
-Lean 4.36.0, Mathlib `v4.36.0`, AlphaCurvature as a Lake dependency.
+Lean 4.36.0, Mathlib `v4.36.0`, and [AlphaCurvature](https://github.com/Charmooo/AlphaCurvature) `v2.1.0` as a Lake dependency (fetched by `lake`).
 
 ```
 lake exe cache get
 lake build
 ```
 
-A full build after `cache get` takes about 11 minutes on an 18-core machine. The certificate modules
+After `cache get`, building this project takes about 11 minutes on an 18-core machine, plus the first build of AlphaCurvature. The certificate modules
 are the heavy part: twelve Newton certificates `C64_*`, `C65_*` (about 4–5 GB each) and the two halves
 of PetzCurvature's Dittmann certificate (about 9 GB each). They import each other in a chain, so Lake
 checks them one at a time whatever the job count; the import adds nothing to the proofs. Peak memory

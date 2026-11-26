@@ -3,12 +3,15 @@
  "packagesDir": ".lake/packages",
  "packages": [
   {
-   "type": "path",
+   "url": "https://github.com/Charmooo/AlphaCurvature.git",
+   "type": "git",
+   "subDir": null,
    "scope": "",
+   "rev": "f0686d6d9953732622537ccc047b9725d9fe8a08",
    "name": "AlphaCurvature",
    "manifestFile": "lake-manifest.json",
+   "inputRev": "v2.1.0",
    "inherited": false,
-   "dir": "../AlphaCurvature",
    "configFile": "lakefile.toml"
   },
   {

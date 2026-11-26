@@ -35,11 +35,16 @@ namespace WYD
 namespace Newton
 
 theorem rep_X (t : ℝ) : Rep t (base, 1) t := by
-  refine ⟨X, 0, ?_, ?_, ?_⟩ <;> simp
+  -- explicit lemma lists: on Lean 4.36 the default simp set (through `CharP.cast_eq_zero`) prints a core
+  -- `getOptions` PANIC message here, harmless but alarming
+  refine ⟨X, 0, ?_, ?_, ?_⟩
+  · simp only [eval_X, eval_zero, Nat.cast_zero, sub_zero]
+  · simp only [eval_X, eval_zero, add_zero, Std.le_refl]
+  · simp only [aeval_X, map_zero, sub_zero]
 
 theorem rep_int_add_X (t : ℝ) (n : ℕ) : Rep t ((n : ℤ) + base, n + 1) (n + t) := by
   have h := (rep_int t n).add (rep_X t)
-  simpa [PP.add] using h
+  simpa only [PP.add, Int.add_def, Int.natAbs_natCast, Nat.add_eq, Int.cast_natCast] using h
 
 theorem parRep1 (t : ℝ) : ParRep t par1 (1 + t) t :=
   ⟨by have h := rep_int_add_X t 1; simp only [Nat.cast_one] at h; exact h, rep_X t⟩

@@ -6,10 +6,10 @@ authors:
     given-names: Adam
     # orcid: "https://orcid.org/0000-0000-0000-0000"
   - name: "Claude (Anthropic)"
-version: 0.1.0
+version: 1.0.0
+date-released: 2026-11-25
 license: Apache-2.0
-# Not yet released. Before the first release add: date-released, doi, and
-# repository-code: "https://github.com/<owner>/WYDCurvature"
+repository-code: "https://github.com/Charmooo/WYDCurvature"
 type: software
 abstract: >-
   A formal proof, in Lean 4 with Mathlib, of Conjecture 8.1 of P. Gibilisco and

@@ -1,5 +1,5 @@
 name = "WYDCurvature"
-version = "0.1.0"
+version = "1.0.0"
 defaultTargets = ["WYDCurvature"]
 
 [leanOptions]
@@ -8,11 +8,10 @@ autoImplicit = false
 relaxedAutoImplicit = false
 maxSynthPendingDepth = 3
 
-# Local scaffold: AlphaCurvature from the sibling checkout. Before publishing, replace by
-# git = "https://github.com/Charmooo/AlphaCurvature.git" and a rev on Lean 4.36.0.
 [[require]]
 name = "AlphaCurvature"
-path = "../AlphaCurvature"
+git = "https://github.com/Charmooo/AlphaCurvature.git"
+rev = "v2.1.0"
 
 [[lean_lib]]
 name = "WYDCurvature"
