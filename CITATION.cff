@@ -1,0 +1,70 @@
+cff-version: 1.2.0
+message: "If you use this formalization, please cite it as below."
+title: "WYDCurvature: a Lean 4 proof of the Gibilisco–Isola conjecture on the scalar curvature of the Wigner–Yanase–Dyson metrics"
+authors:
+  - family-names: Bornemann
+    given-names: Adam
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+  - name: "Claude (Anthropic)"
+version: 0.1.0
+license: Apache-2.0
+# Not yet released. Before the first release add: date-released, doi, and
+# repository-code: "https://github.com/<owner>/WYDCurvature"
+type: software
+abstract: >-
+  A formal proof, in Lean 4 with Mathlib, of Conjecture 8.1 of P. Gibilisco and
+  T. Isola (J. Math. Phys. 46 (2005), arXiv:math-ph/0407007): the scalar
+  curvature of the Wigner–Yanase–Dyson metric WYD(p) on the faithful density
+  matrices is Schur-increasing, that is, monotone under mixing, for p near 1.
+  It is proved for every p ≤ −1 and every p ≥ 1/2 and every matrix size, strictly
+  for p ≠ 2, where the curvature is constant; the case p = 1 is the Kubo–Mori
+  metric and Petz's conjecture, brought in from PetzCurvature. The statements use
+  the paper's own definitions. With β = 1/p, WYD(p) is the pullback of a constant
+  pairing by ρ ↦ (ρ^β, ρ^(1−β)), which gives a closed form of the scalar curvature
+  through the Gauss equation and reduces the conjecture to Dittmann's four
+  inequalities for an explicit kernel. Two of them are proved by hand, one through
+  an autonomous ODE system and a barrier argument; the other two through Newton
+  expansions of exponential polynomials whose coefficients are polynomials with
+  nonnegative integer coefficients, checked in the kernel. Also proved is
+  Theorem 6.1 of the same paper: the function f_p of the WYD(p) metric is
+  normalized symmetric operator monotone exactly for p ≤ −1 and p ≥ 1/2, through
+  an operator geometric mean, in any unital C*-algebra for the "if" direction.
+references:
+  - type: article
+    title: "On the monotonicity of scalar curvature in classical and quantum information geometry"
+    authors:
+      - family-names: Gibilisco
+        given-names: Paolo
+      - family-names: Isola
+        given-names: Tommaso
+    journal: "Journal of Mathematical Physics"
+    volume: 46
+    year: 2005
+    identifiers:
+      - type: other
+        value: "arXiv:math-ph/0407007"
+  - type: software
+    title: "PetzCurvature: a Lean 4 proof of Petz's conjecture for the Kubo–Mori metric"
+    authors:
+      - family-names: Bornemann
+        given-names: Adam
+      - name: "Claude (Anthropic)"
+    doi: 10.5281/zenodo.24460110
+  - type: software
+    title: "AlphaCurvature: Lean 4 proofs of the Gibilisco–Isola conjectures on the scalar curvature of the classical and quantum α-geometries"
+    authors:
+      - family-names: Bornemann
+        given-names: Adam
+      - name: "Claude (Anthropic)"
+    doi: 10.5281/zenodo.24464060
+keywords:
+  - Lean 4
+  - Mathlib
+  - formal verification
+  - quantum information geometry
+  - monotone metrics
+  - Wigner–Yanase–Dyson metric
+  - scalar curvature
+  - majorization
+  - operator monotone functions
+  - Gibilisco–Isola conjecture
