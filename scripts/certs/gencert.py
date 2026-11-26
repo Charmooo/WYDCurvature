@@ -1,4 +1,4 @@
-"""Writes the twelve Newton certificates WYDCurvature/C6*_*_*.lean (node lists only; the checks are run by the kernel).
+"""Writes the twelve Newton certificates WYDCurvature/Newton/Certificates/C6*_*_*.lean (node lists only; the checks are run by the kernel).
 usage: python gencert.py OUTDIR   (needs python-flint).  Each certificate after the first also imports the previous one,
 so that `lake build` checks them one at a time; the import adds nothing to the proofs."""
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -12,7 +12,7 @@ Copyright (c) 2026 Adam Bornemann. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann, Claude (Anthropic)
 -/
-import WYDCurvature.Newton%s
+import WYDCurvature.Newton.Basic%s
 
 /-!
 # Newton certificate for %s, %s
@@ -54,6 +54,6 @@ for (w,c),f in S.items():
         B+=f"end {ns}\n\ntheorem {nm} : ∃ us vs, check2 {P} us vs (group ({num})) = true :=\n  ⟨_, _, {ap.replace('h', ns+'.h')if False else ap}⟩\n\n"
         import re
         B=B[:B.index(f"end {ns}")]+re.sub(r'\bh(\d+)\b',ns+r'.h\1',B[B.index(f"end {ns}"):])
-        prev='' if len(names)==1 else f"\nimport WYDCurvature.{names[-2]}  -- build order only: one certificate check at a time"
+        prev='' if len(names)==1 else f"\nimport WYDCurvature.Newton.Certificates.{names[-2]}  -- build order only: one certificate check at a time"
         open(os.path.join(OUT,f"C{w}_{c}_{reg}.lean"),"w").write(HEAD%(prev,f"({w})",f"position {c}, "+("`d < 1`" if reg==1 else "`1 < d ≤ 3`"),B))
 print(' '.join(names))

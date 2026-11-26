@@ -11,14 +11,15 @@ that these are exactly the p for which `f_p` is operator monotone, is proved as 
 
 | Lean name | Statement |
 |---|---|
-| `WYD.Literal.conjecture81` | Conjecture 8.1, with the paper's definitions (`WYDCurvature/Literal.lean`) |
-| `WYD.Literal.wyd_schurIncreasing_all` | Schur-increasing for every `p ≤ -1` and `p ≥ 1/2`, all `n` |
-| `WYD.Literal.wyd_strictly_all` | the same, strictly, for `p ≠ 2` (at `p = 2` the curvature is constant) |
+| `WYD.Paper.conjecture81` | Conjecture 8.1, with the paper's definitions |
+| `WYD.Paper.wyd_schurIncreasing_all` | Schur-increasing for every `p ≤ -1` and `p ≥ 1/2`, all `n` |
+| `WYD.Paper.wyd_strictly_all` | the same, strictly, for `p ≠ 2` (at `p = 2` the curvature is constant) |
 | `WYD.Theorem61.theorem61` | Theorem 6.1: `f_p` is (normalized symmetric) operator monotone iff `p ≤ -1 ∨ 1/2 ≤ p` |
 
-`Literal.lean` states everything with the paper's own objects: `f_p` (Definition 6.1), the
-Morozova–Chentsov function, `c_f(L_ρ, R_ρ)`, the WYD(p) metric on the faithful states (Definition 6.2)
-and its scalar curvature. All of them depend only on the standard axioms (`propext`,
+**Start with `WYDCurvature/Paper/Definitions.lean`** (129 lines). It defines the paper's own objects:
+the density matrices, majorization and Schur-increasing functions (Section 2), `f_p` (Definition 6.1), the
+Morozova–Chentsov function, `c_f(L_ρ, R_ρ)`, the WYD(p) metric on the faithful states (Definition 6.2) and
+its scalar curvature. It imports no part of the proof. The theorems above depend only on the standard axioms (`propext`,
 `Classical.choice`, `Quot.sound`); `scripts/Audit.lean` prints them. There is no `sorry`,
 `native_decide`, `set_option` or `axiom` in the library.
 
@@ -26,7 +27,8 @@ The case p = 1 (the Kubo–Mori metric, `f_1 = f_∞`) is Petz's conjecture, pro
 [PetzCurvature](https://github.com/Charmooo/PetzCurvature). Its own modules are included in
 `WYDCurvature/Petz` (from PetzCurvature commit `4ff69a7`, Lean 4.36.0) with only their imports
 changed, so that they build on [AlphaCurvature](https://github.com/Charmooo/AlphaCurvature)'s copies
-of the shared files; the two libraries cannot be imported together.
+of the shared files; the two libraries cannot be imported together. Their declarations keep
+PetzCurvature's names (namespace `PetzCurvature`).
 
 ## Building
 
@@ -63,23 +65,32 @@ runs it module by module under a memory cap.
 * (62) and (63) are proved by hand (for (63), an autonomous ODE system and two barrier arguments).
 * (64) and (65): the cleared numerators are exponential polynomials. In Newton form on their own exponents,
   with d = t/(1+t) or (3+t)/(1+t), every Newton coefficient is a polynomial in t with nonnegative integer
-  coefficients. The kernel checks this (`WYDCurvature/Newton*.lean`, `C6*.lean`).
+  coefficients. The kernel checks this (`WYDCurvature/Newton/`).
   `scripts/certs/gencert.py` regenerates the twelve certificate files byte for byte (needs `python-flint`).
 * Theorem 6.1: 1/f_p is an average over [0,1]² of inverses of weighted operator geometric means of
-  operator monotone functions (`GeomMean.lean`, `OpMono.lean`, `Theorem61.lean`). The "only if" half uses
+  operator monotone functions (`OperatorMonotone/`, `Paper/Theorem61.lean`). The "only if" half uses
   1×1 matrices.
 
 ## Layout
 
 | path | contents |
 |---|---|
-| `WYDCurvature/Literal.lean` | the statements with the paper's definitions |
-| `WYDCurvature/Final.lean` | the curvature theorem for β ∈ [−1, 2] \ {0, ½, 1} |
+| `WYDCurvature/Paper/` | `Definitions` (the paper's definitions), `Conjecture81`, `Theorem61` |
+| `WYDCurvature/Metric/` | the WYD metric and its kernels in logarithmic coordinates |
+| `WYDCurvature/Curvature/` | triple sums, the chart at a diagonal state, the normal, the closed form of the scalar curvature |
+| `WYDCurvature/Dittmann/` | Dittmann's reduction, mixing, the forms of `hs_β`, (62), (63), and (64), (65) in hyperbolic form |
+| `WYDCurvature/Newton/` | Newton certificates: computable part, exponential polynomials, soundness, (64) and (65); `Certificates/` |
+| `WYDCurvature/Main.lean` | the curvature theorem for β ∈ [−1, 2] \ {0, ½, 1} |
 | `WYDCurvature/KuboMori.lean` | p = 1, joined from PetzCurvature; the whole range |
-| `WYDCurvature/Theorem61.lean` | Theorem 6.1 |
+| `WYDCurvature/OperatorMonotone/` | the operator geometric mean and operator monotone functions, for Theorem 6.1 |
+| `WYDCurvature/ForMathlib/` | the second derivative of the matrix exponential |
 | `WYDCurvature/Petz/` | PetzCurvature's modules |
 | `docs/` | `reduction.tex`, the written proof |
-| `scripts/` | replay, audit, certificate generator |
+| `scripts/` | replay, audit, certificate generator (`certs/`), numerical checks (`checks/`) |
+
+`scripts/checks` (mpmath, sympy): `reduction_check.py` checks the identities of `docs/reduction.tex`;
+`fidelity.py` compares the Lean definitions, the metric with `f_p`, Dittmann's formula and the closed form
+at random states; `adversary.py` searches for counterexamples by descent.
 
 ## Authors
 

@@ -3,7 +3,7 @@ Copyright (c) 2026 Adam Bornemann. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Bornemann, Claude (Anthropic)
 -/
-import WYDCurvature.Literal
+import WYDCurvature.Paper.Conjecture81
 import WYDCurvature.Petz.Main
 
 /-!
@@ -31,7 +31,7 @@ open scoped Matrix.Norms.L2Operator Topology ComplexOrder
 open Matrix ContinuousLinearMap Filter Set
 open AlphaCurvature AlphaCurvature.Curvature AlphaCurvature.Quantum
 
-namespace WYD.Literal
+namespace WYD.Paper
 
 /-! ### The two libraries agree -/
 
@@ -222,4 +222,4 @@ theorem scal_kuboMori_uniform [NeZero n] (hg : IsWYDMetric 1 g) :
 
 end Global
 
-end WYD.Literal
+end WYD.Paper
