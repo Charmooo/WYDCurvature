@@ -1,5 +1,7 @@
 # WYDCurvature
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24548331.svg)](https://doi.org/10.5281/zenodo.24548331)
+
 A Lean 4 / Mathlib formalization of **Conjecture 8.1** of Gibilisco and Isola, *On the monotonicity
 of scalar curvature in classical and quantum information geometry*, J. Math. Phys. 46 (2005)
 (arXiv:math-ph/0407007). The conjecture says the scalar curvature of the Wigner–Yanase–Dyson
