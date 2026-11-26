@@ -1,0 +1,520 @@
+\documentclass[11pt]{amsart}
+\usepackage[margin=1.1in]{geometry}
+\usepackage{amssymb,booktabs,hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\numberwithin{equation}{section}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Herm}{\mathrm{Herm}_n}
+\newcommand{\Pn}{\mathcal{P}_n}
+\newcommand{\Dn}{\mathcal{D}_n}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\Ric}{\operatorname{Ric}}
+\newcommand{\hs}{\mathrm{hs}}
+\newcommand{\ph}{\hat\varphi}
+\newcommand{\eps}{\varepsilon}
+
+\title[The WYD curvature conjecture]{Scalar curvature of the Wigner--Yanase--Dyson metrics:\\ closed form and monotonicity under mixing}
+\author{Adam Bornemann}
+\author{Claude (Anthropic)}
+\date{25 November 2026. Working document; not independently reviewed.}
+
+\begin{document}
+
+\begin{abstract}
+For the Wigner--Yanase--Dyson metric $g^\beta$, $\beta\in\R\setminus\{0,1\}$, on the faithful $n\times n$ density
+matrices we prove a closed form for the scalar curvature as a sum over triples of eigenvalues of one explicit symmetric
+function $\hs_\beta$ (Theorem~\ref{thm:closed}). We then prove that strict monotonicity under mixing
+(Gibilisco--Isola, Conjecture~8.1, at the parameter $\beta$) follows from Dittmann's inequalities (62)--(65) for
+$\hs_\beta$, with (62) strict (Theorem~\ref{thm:reduction}). We prove (62) for every $\beta\ne\frac12$ (Theorem~\ref{thm:62}) and (63) for $\beta\in[-1,2]$
+(Theorem~\ref{thm:63}) by hand, and (64) and (65) for $\beta\in[-1,2]$ (Theorem~\ref{thm:6465}) by a finite certificate in integer arithmetic: the numerators are exponential polynomials in two gaps, and their
+Newton coefficients on their own exponents are polynomials in one parameter with nonnegative integer coefficients. So the conjecture holds for every $\beta\in[-1,2]\setminus\{0,\frac12,1\}$ and every $n$
+(Corollary~\ref{cor:main}). The whole proof is machine-checked in Lean (Section~\ref{sec:status}).
+\end{abstract}
+
+\maketitle
+
+\section{Setting and statements}
+
+\subsection*{The metric} $\Herm$ denotes the real vector space of Hermitian $n\times n$ matrices ($n\ge 2$), $\Pn\subset\Herm$ the
+open cone of positive definite ones and $\Dn=\{\rho\in\Pn:\Tr\rho=1\}$. Fix $\beta\in\R\setminus\{0,1\}$. For $\rho=U\operatorname{diag}(\lambda)U^*$
+and $X\in\Herm$ put $\tilde X=U^*XU$ and
+\begin{equation}\label{eq:metric}
+g^\beta_\rho(X,X)=\sum_{i,j}c_\beta(\lambda_i,\lambda_j)\,|\tilde X_{ij}|^2,\qquad
+c_\beta(x,y)=\frac{(x^\beta-y^\beta)(x^{1-\beta}-y^{1-\beta})}{\beta(1-\beta)(x-y)^2},\quad c_\beta(x,x)=\frac1x .
+\end{equation}
+Since $(x^\beta-y^\beta)/\beta$ and $(x^{1-\beta}-y^{1-\beta})/(1-\beta)$ have the sign of $x-y$, $c_\beta>0$, so $g^\beta$ is a Riemannian
+metric (real-analytic, by Lemma~\ref{lem:hessian}); it is invariant under $\rho\mapsto U\rho U^*$ and under $\beta\leftrightarrow1-\beta$.
+It is a monotone metric for $-1\le\beta\le2$ (Hasegawa--Petz \cite{hp}), but monotonicity of the metric is not used
+below; nor is the conjecture's restriction to $p=1/\beta$ near $1$ \cite{gi}. The limits $\beta\to0,1$ give the Kubo--Mori metric, for which the statement is a theorem (Petz's conjecture, proved in
+Lean in this repository); we exclude them.
+
+\subsection*{Conventions} $R(X,Y)Z=\nabla_X\nabla_YZ-\nabla_Y\nabla_XZ-\nabla_{[X,Y]}Z$, $\Ric(Y,Z)=\tr(X\mapsto R(X,Y)Z)$, and $S$ is the
+trace of $\Ric$; the unit sphere of dimension $N$ has $S=N(N-1)$. $S_\beta(\rho)$ is the scalar curvature of $(\Dn,g^\beta)$ at $\rho$. By unitary
+invariance it depends only on the eigenvalues, $S_\beta(\rho)=S_\beta(\lambda)$.
+
+For $x,y\in\R^n$, $x$ is \emph{majorized by} $y$, $x\prec y$, if $\sum x_i=\sum y_i$ and, with the entries of both sorted increasingly,
+$\sum_{i\le k}x_i\ge\sum_{i\le k}y_i$ for every $k$. A state $\rho$ is \emph{more mixed} than $\varrho$ if its eigenvalue vector is majorized by that
+of $\varrho$.
+
+\subsection*{Notation for divided differences} For a smooth $f$ on $(0,\infty)$, $f^{[1]}(x,y)$ and $f^{[2]}(x,y,z)$ are its first and second divided
+differences; by the Hermite--Genocchi formula
+\begin{equation}\label{eq:HG}
+f^{[k]}(x_0,\dots,x_k)=\int_{\Delta_k}f^{(k)}(t_0x_0+\dots+t_kx_k)\,dt,
+\end{equation}
+so they are smooth symmetric functions of positive arguments, coincident ones included, with $f^{[1]}(x,x)=f'(x)$ and $f^{[2]}(x,x,x)=\frac12f''(x)$.
+
+\section{The WYD metric is a Hessian metric}
+
+Put
+\begin{equation}
+p=\frac1\beta,\qquad \varphi(\mu)=\frac{\mu^{p-1}}{\beta(1-\beta)},\qquad \Phi(u)=\frac{\Tr u^{p}}{1-\beta}\quad(u\in\Pn).
+\end{equation}
+Then $\varphi(\lambda^\beta)=\lambda^{1-\beta}/(\beta(1-\beta))$, and, since $p-1=(1-\beta)/\beta$,
+\begin{equation}\label{eq:phiprime}
+\varphi'(\mu)=\frac{\mu^{p-2}}{\beta^2}>0 ,\qquad \varphi''(\mu)=\frac{1-2\beta}{\beta\mu}\,\varphi'(\mu).
+\end{equation}
+
+\begin{lemma}\label{lem:dk}
+Let $f$ be holomorphic on $\C\setminus(-\infty,0]$ and $u=\operatorname{diag}(\mu)\in\Pn$. Then
+$\frac{d}{dt}\big|_0\Tr F(u+tA)=\Tr(f(u)A)$ if $F'=f$, and
+\[
+(Df(u)[A])_{ij}=f^{[1]}(\mu_i,\mu_j)A_{ij},\qquad
+(D^2f(u)[A,B])_{ik}=\sum_jf^{[2]}(\mu_i,\mu_j,\mu_k)(A_{ij}B_{jk}+B_{ij}A_{jk}).
+\]
+\end{lemma}
+\begin{proof}
+For $\Gamma$ a contour in $\{\operatorname{Re}z>0\}$ around the $\mu_i$ and $R=(z-u)^{-1}$, $f(u)=\frac1{2\pi i}\oint_\Gamma f(z)R\,dz$. As $DR[A]=RAR$, we get
+\[Df(u)[A]=\frac1{2\pi i}\oint_\Gamma f\,RAR\,dz,\qquad D^2f(u)[A,B]=\frac1{2\pi i}\oint_\Gamma f\,(RARBR+RBRAR)\,dz .\]
+In coordinates the scalar integrals are
+$\frac1{2\pi i}\oint f(z)\prod_{l=0}^{k}(z-x_l)^{-1}dz=f^{[k]}(x_0,\dots,x_k)$ (Cauchy). For the trace, $\Tr(F^{[1]}(\mu_i,\mu_j)A_{ij})_{ij}=\sum_if(\mu_i)A_{ii}$.
+\end{proof}
+
+\begin{lemma}\label{lem:hessian}
+The map $\rho\mapsto u=\rho^\beta$ is a real-analytic diffeomorphism of $\Pn$ onto itself, and it carries $g^\beta$ (extended to $\Pn$ by
+\eqref{eq:metric}) to the Hessian metric $G_u=D^2\Phi(u)$. It carries $\Dn$ to the level set $\{\Phi=1/(1-\beta)\}$.
+\end{lemma}
+\begin{proof}
+The inverse is $u\mapsto u^{1/\beta}$, and both are analytic. By Lemma~\ref{lem:dk},
+\[D\Phi(u)[A]=\frac{p}{1-\beta}\Tr(u^{p-1}A)=\Tr(\varphi(u)A),\qquad D^2\Phi(u)[A,B]=\Tr(D\varphi(u)[A]\,B).\] With $A=B=D\rho^\beta[X]$ and $\varphi(\rho^\beta)=\rho^{1-\beta}/(\beta(1-\beta))$, the chain rule gives
+\[D^2\Phi[A,A]=\frac{1}{\beta(1-\beta)}\Tr(D\rho^{1-\beta}[X]\,D\rho^\beta[X]).\]
+At $\rho=\operatorname{diag}(\lambda)$, Lemma~\ref{lem:dk} turns this into
+$\sum_{ij}c_\beta(\lambda_i,\lambda_j)|X_{ij}|^2$ (for $\lambda_i=\lambda_j$ the factor is $\lambda_i^{-\beta}\lambda_i^{\beta-1}=1/\lambda_i$). The case of general $\rho$ follows by unitary
+invariance of both sides. Finally $\Tr\rho=\Tr u^p=(1-\beta)\Phi(u)$.
+\end{proof}
+
+\noindent The next lemma is standard (Shima \cite{shima}); Lemma~\ref{lem:dk} is the Daleckii--Krein formula \cite{bhatia}. Both are proved to fix signs and normalisations.
+
+\begin{lemma}\label{lem:hesscurv}
+Let $G=D^2\Phi$ be a Riemannian Hessian metric on an open subset of a finite-dimensional vector space, $T=D^3\Phi$, and $\tau(Z)=\sum_aT(e_a,e_a,Z)$ for a $G$-orthonormal
+basis $(e_a)$. Let $T_XY$ be defined by $G(T_XY,Z)=T(X,Y,Z)$. Then, for constant vector fields,
+\begin{equation*}
+\nabla_XY=\tfrac12T_XY,\qquad R(X,Y)=-\tfrac14[T_X,T_Y],\qquad S=\tfrac14\Big(\sum_{a,b,c}T(e_a,e_b,e_c)^2-\sum_a\tau(e_a)^2\Big).
+\end{equation*}
+\end{lemma}
+\begin{proof}
+$DG=T$ is totally symmetric, so Koszul's formula gives $2G(\nabla_XY,Z)=T(X,Y,Z)$. Differentiating $G(T_YZ,W)=T(Y,Z,W)$ gives
+\[G(D_X(T_YZ),W)=D^4\Phi(X,Y,Z,W)-T(X,T_YZ,W).\]
+Hence
+\[R(X,Y)Z=\tfrac12\big(D_X(T_YZ)-D_Y(T_XZ)\big)+\tfrac14(T_XT_YZ-T_YT_XZ)=\big(-\tfrac12+\tfrac14\big)[T_X,T_Y]Z ,\]
+the fourth derivatives cancelling. Then
+\[\Ric(Y,Z)=-\frac14\sum_aG([T_{e_a},T_Y]Z,e_a)=\frac14\Big(\sum_aG(T_Ye_a,T_Ze_a)-\tau(T_YZ)\Big),\]
+using the symmetry of $T$:
+\[G(T_{e_a}T_YZ,e_a)=G(T_YZ,T_{e_a}e_a),\qquad G(T_YT_{e_a}Z,e_a)=G(T_Ze_a,T_Ye_a).\]
+ Tracing over $Y=Z=e_b$ and using $\sum_bT_{e_b}e_b=\sum_a\tau(e_a)e_a$ gives $S$.
+\end{proof}
+
+\begin{proposition}\label{prop:gauss}
+Let $S^{\mathrm{cone}}$ be the scalar curvature of $(\Pn,G)$. At every point of $\Dn$,
+\[S_\beta=S^{\mathrm{cone}}+\frac{(n^2-1)(n^2-2)}{4}.\]
+\end{proposition}
+\begin{proof}
+$\Phi$ is homogeneous of degree $p$. Let $E_u=u$ be the Euler field. Euler's relation for $D\Phi$ and $D^2\Phi$ gives
+\[G(E,V)=(p-1)D\Phi(u)[V],\qquad T(E,V,W)=(p-2)G(V,W).\]
+Hence $E$ is normal to the level sets of $\Phi$, and $G(E,E)=p(p-1)\Phi$. On $\Dn$, $\Phi=1/(1-\beta)=p/(p-1)$, so $G(E,E)=p^2$ and $\nu=E/p$ is a unit normal
+along $\Dn$ (its sign is irrelevant). For every $V$,
+\[\nabla_VE=D_VE+\tfrac12T_VE=V+\tfrac12(p-2)V=\tfrac p2V .\]
+Two consequences. First, $\nabla_V\nu=\frac12V$ for $V$ tangent to $\Dn$: the hypersurface is totally umbilic with all principal curvatures equal to
+$\frac12$. Second, for any vector fields, $R(X,Y)E=\frac p2(\nabla_XY-\nabla_YX-[X,Y])=0$, so $\Ric(E,E)=0$. The Gauss equation, traced twice, reads
+$S_\beta=S^{\mathrm{cone}}-2\Ric(\nu,\nu)+(\tr A)^2-|A|^2$ with $A=\frac12\mathrm{Id}$ on a space of dimension $N=n^2-1$, and $\frac{N^2}4-\frac N4=\frac{(n^2-1)(n^2-2)}4$.
+\end{proof}
+
+\section{The closed form}
+
+For $x,y,z>0$ put
+\begin{align}
+w(x,y)&=\varphi^{[1]}(x^\beta,y^\beta)>0,\qquad F(x,y,z)=\varphi^{[2]}(x^\beta,y^\beta,z^\beta),\\
+h(x,y,z)&=\frac{F(x,y,z)^2}{2\,w(x,y)w(y,z)w(z,x)}-\frac{F(x,x,y)F(x,x,z)}{w(x,x)w(x,y)w(x,z)},\label{eq:h}\\
+\hs_\beta(x,y,z)&=\tfrac13\big(h(x,y,z)+h(y,z,x)+h(z,x,y)\big).\label{eq:hs}
+\end{align}
+By \eqref{eq:HG} and \eqref{eq:phiprime} these are smooth on $(0,\infty)^3$, and $\hs_\beta$ is symmetric ($h$ is symmetric in its last two arguments). Scaling $\lambda\mapsto c\lambda$
+multiplies $w$ by $c^{1-2\beta}$ and $F$ by $c^{1-3\beta}$, so $\hs_\beta$ is homogeneous of degree $2(1-3\beta)-3(1-2\beta)=-1$.
+
+\begin{theorem}\label{thm:closed}
+For every $\beta\in\R\setminus\{0,1\}$ and every $\rho\in\Dn$ with eigenvalues $\lambda_1,\dots,\lambda_n$,
+\begin{equation}\label{eq:closed}
+S_\beta(\rho)=\sum_{i,j,k}\hs_\beta(\lambda_i,\lambda_j,\lambda_k)-\sum_i\hs_\beta(\lambda_i,\lambda_i,\lambda_i)+\frac{(n^2-1)(n^2-2)}4 .
+\end{equation}
+\end{theorem}
+\begin{proof}
+By unitary invariance take $\rho$ diagonal; $u=\operatorname{diag}(\mu)$, $\mu_i=\lambda_i^\beta$. Write $w_{ij}$, $F_{ijk}$ for $w,F$ at the corresponding eigenvalues. By Lemma~\ref{lem:dk},
+$G(A,B)=\sum_{ij}w_{ij}A_{ij}B_{ji}$ and
+\[T(A,B,C)=C_3(A,B,C)+C_3(B,A,C),\qquad C_3(A,B,C)=\sum_{i,j,k}F_{ijk}A_{ij}B_{jk}C_{ki}.\]
+\emph{Completeness.} Let $(e_a)$ be a $G$-orthonormal basis of $\Herm$. It is also a $\C$-basis of $M_n(\C)$, orthonormal for the complex bilinear
+extension of $G$, so $A=\sum_aG(A,e_a)e_a$ for all $A\in M_n(\C)$. For $A=E_{rs}$ this says
+\begin{equation}\label{eq:complete}
+\sum_a(e_a)_{pq}(e_a)_{sr}=\frac{\delta_{pr}\delta_{qs}}{w_{rs}} .
+\end{equation}
+\emph{$|T|^2$.} Total symmetry of $T$ and relabelling give $\sum_{abc}T(e_a,e_b,e_c)^2=2\Sigma_1+2\Sigma_2$ with $\Sigma_1=\sum C_3(e_a,e_b,e_c)^2$ and
+$\Sigma_2=\sum C_3(e_a,e_b,e_c)C_3(e_b,e_a,e_c)$ (the substitution $a\leftrightarrow b$ exchanges the two squares). In $\Sigma_1$, with primed indices for the second
+factor, \eqref{eq:complete} forces $i=j'$, $j=i'$; $j=k'$, $k=j'$; $k=i'$, $i=k'$: all six indices coincide, and $\Sigma_1=\sum_iF_{iii}^2/w_{ii}^3$. In $\Sigma_2$ the second factor is
+$\sum F_{i'j'k'}(e_b)_{i'j'}(e_a)_{j'k'}(e_c)_{k'i'}$, and \eqref{eq:complete} forces $i=k'$, $j=j'$, $k=i'$, so by symmetry of $F$,
+$\Sigma_2=\sum_{ijk}F_{ijk}^2/(w_{ij}w_{jk}w_{ki})$.
+
+\emph{$|\tau|^2$.} $T(e_a,e_a,Z)=2C_3(e_a,e_a,Z)$, and $\sum_a(e_a)_{ij}(e_a)_{jk}=\delta_{ik}/w_{ij}$, so $\tau(Z)=2\sum_it_iZ_{ii}$ with $t_i=\sum_jF_{iij}/w_{ij}$; then
+$\sum_a\tau(e_a)^2=4\sum_it_i^2/w_{ii}$.
+
+By Lemma~\ref{lem:hesscurv},
+\[S^{\mathrm{cone}}=\sum_{ijk}\frac{F_{ijk}^2}{2w_{ij}w_{jk}w_{ki}}-\sum_{ijk}\frac{F_{iij}F_{iik}}{w_{ii}w_{ij}w_{ik}}+\sum_i\frac{F_{iii}^2}{2w_{ii}^3}
+=\sum_{ijk}h(\lambda_i,\lambda_j,\lambda_k)-\sum_ih(\lambda_i,\lambda_i,\lambda_i),\]
+because $h(x,x,x)=-F(x,x,x)^2/(2w(x,x)^3)$. A sum over all triples does not change under cyclic relabelling, so $h$ may be replaced by $\hs_\beta$.
+Proposition~\ref{prop:gauss} finishes the proof.
+\end{proof}
+
+\section{Reduction to Dittmann's inequalities}
+
+Write $\hs'$ for the partial derivative of $\hs=\hs_\beta$ in its first argument. Dittmann's inequalities are, for all $0<x<y$ and $l,m>0$,
+\begin{align}
+0&\le 2\hs'(x,x,y)-\hs'(y,x,x)-2\hs'(y,x,y)+\hs'(x,y,y),\tag{62}\label{62}\\
+0&\le \hs'(x,x,l)-\hs'(y,y,l),\tag{63}\label{63}\\
+0&\le \hs'(x,y,l)-\hs'(y,x,l),\tag{64}\label{64}\\
+0&\le \hs'(x,l,m)-\hs'(y,l,m).\tag{65}\label{65}
+\end{align}
+Dittmann's proof for the Kubo--Mori metric uses nothing about his function beyond smoothness and symmetry, and the same is true here.
+
+\begin{theorem}\label{thm:reduction}
+Let $\hs$ be any symmetric $C^1$ function on $(0,\infty)^3$ satisfying \eqref{62}--\eqref{65}, and
+$\mathcal S(\lambda)=\sum_{ijk}\hs(\lambda_i,\lambda_j,\lambda_k)-\sum_i\hs(\lambda_i,\lambda_i,\lambda_i)$ for $\lambda\in(0,\infty)^n$. If $x\prec y$ then $\mathcal S(y)\le\mathcal S(x)$. If moreover \eqref{62} is
+strict and the sorted vectors differ, then $\mathcal S(y)<\mathcal S(x)$.
+
+Consequently, if $\hs_\beta$ satisfies \eqref{62}--\eqref{65} with \eqref{62} strict, then $S_\beta(\varrho)<S_\beta(\rho)$ whenever $\rho\in\Dn$ is more mixed than $\varrho\in\Dn$ and
+their spectra differ.
+\end{theorem}
+\begin{proof}
+\emph{Gradient.} By symmetry of $\hs$, $\partial_a\mathcal S=3\big(\sum_{jk}\hs'(\lambda_a,\lambda_j,\lambda_k)-\hs'(\lambda_a,\lambda_a,\lambda_a)\big)$. Fix $a\neq b$ with
+$\lambda_a<\lambda_b$. Split the double sums according to whether $j$ and $k$ lie in $\{a,b\}$. Writing $\hs'_{a|jk}$ for $\hs'(\lambda_a,\lambda_j,\lambda_k)$, the terms with both
+in $\{a,b\}$, together with $-\hs'_{a|aa}+\hs'_{b|bb}$, sum to
+$2\hs'_{a|ab}+\hs'_{a|bb}-\hs'_{b|aa}-2\hs'_{b|ab}$. So
+\begin{multline}\label{eq:dittmann}
+\tfrac13(\partial_a-\partial_b)\mathcal S=\big(2\hs'_{a|ab}-\hs'_{b|aa}-2\hs'_{b|ab}+\hs'_{a|bb}\big)\\
++2\sum_{r\ne a,b}\big((\hs'_{a|ar}-\hs'_{b|br})+(\hs'_{a|br}-\hs'_{b|ar})\big)+\sum_{j,k\ne a,b}(\hs'_{a|jk}-\hs'_{b|jk}).
+\end{multline}
+The groups are $\ge0$ by \eqref{62}, by \eqref{63} and \eqref{64}, and by \eqref{65}. Hence $\partial_a\mathcal S\ge\partial_b\mathcal S$ when $\lambda_a<\lambda_b$, strictly if \eqref{62} is
+strict; and $\partial_a\mathcal S=\partial_b\mathcal S$ when $\lambda_a=\lambda_b$.
+
+\emph{Schur--Ostrowski.} $\mathcal S$ is invariant under permutations, so let $x,y$ be sorted increasingly. Put $v=x-y$ and $V_i=\sum_{j\le i}v_j$; then $V_i\ge0$ and $V_n=0$. The points
+$z(t)=y+tv=(1-t)y+tx$, $t\in[0,1]$, are positive and sorted, so $\partial_i\mathcal S\ge\partial_{i+1}\mathcal S$ there and, by Abel summation,
+\[\frac{d}{dt}\mathcal S(z(t))=\sum_i\partial_i\mathcal S\,v_i=\sum_{i<n}(\partial_i\mathcal S-\partial_{i+1}\mathcal S)V_i\ge0 .\]
+For the strict statement let $x\ne y$ and $t<1$. Abel summation also gives $x\cdot v=-\sum_{i<n}(x_{i+1}-x_i)V_i\le0$, hence
+\[-\sum_{i<n}(z_{i+1}-z_i)V_i=z(t)\cdot v=x\cdot v-(1-t)|v|^2<0 .\]
+So for some $i$ both $V_i>0$ and $z_i<z_{i+1}$; the $i$-th term of the derivative is then strictly positive. Thus $\mathcal S(z(t))$ is strictly increasing on $[0,1)$,
+and $\mathcal S(y)<\mathcal S(x)$.
+
+The last claim is Theorem~\ref{thm:closed}.
+\end{proof}
+
+\begin{remark}
+The reduction is machine-checked for the Kubo--Mori function in the Lean file
+\texttt{Dittmann/Mixing.lean}. The Schur--Ostrowski criterion is machine-checked for general functions, in its weak and strict forms:
+\texttt{le\_of\_isMajorizedBy} and \texttt{lt\_of\_isMajorizedBy} in
+\texttt{ForMathlib/Majorization.lean}. The proof above is the same, following \cite{dittmann}.
+\end{remark}
+
+\section{Explicit forms of \texorpdfstring{$\hs_\beta$}{hs}}\label{sec:forms}
+
+Put $P_i=\lambda_i^\beta$, $Q_i=\lambda_i^{1-\beta}$ (so $\lambda_i=P_iQ_i$), $D_{ij}=(P_i-P_j)(Q_i-Q_j)$, $A=\det\begin{pmatrix}1&1&1\\P_1&P_2&P_3\\Q_1&Q_2&Q_3\end{pmatrix}$ and
+\[\kappa_{ij}=\frac{(1-\beta)Q_i}{Q_j-Q_i}-\frac{\beta P_i}{P_j-P_i}\qquad(\lambda_i\ne\lambda_j).\]
+
+\begin{proposition}\label{prop:kappa}
+For pairwise distinct arguments
+\begin{equation}\label{eq:kappaform}
+\hs_\beta(\lambda_1,\lambda_2,\lambda_3)=\frac{\beta(1-\beta)A^2}{2D_{12}D_{23}D_{31}}-\frac13\sum_{a}\frac{\kappa_{ab}\kappa_{ac}}{\lambda_a}\qquad(\{a,b,c\}=\{1,2,3\}),
+\end{equation}
+and for $\lambda_a\neq\lambda_b$
+\begin{equation}\label{eq:twopoint}
+\hs_\beta(\lambda_a,\lambda_a,\lambda_b)=\frac1{\lambda_a}\Big(\frac{\kappa_{ab}^2}2+\frac{1-2\beta}3\kappa_{ab}\Big)-\frac{\kappa_{ba}^2}{3\lambda_b}.
+\end{equation}
+\end{proposition}
+\begin{proof}
+From $\varphi(P)=Q/(\beta(1-\beta))$ on the curve $(P_i,Q_i)$ and \eqref{eq:phiprime},
+\[w_{ij}=\frac{1}{\beta(1-\beta)}\,\frac{Q_i-Q_j}{P_i-P_j},\qquad w_{ii}=\frac{Q_i}{\beta^2P_i},\qquad F_{iij}=\frac{w_{ii}-w_{ij}}{P_i-P_j}.\]
+Hence
+\begin{equation}\label{eq:Fw}
+\frac{F_{iij}}{w_{ij}}=\frac1{P_i-P_j}\Big(\frac{w_{ii}}{w_{ij}}-1\Big)=\frac{1-\beta}{\beta P_i}\,\frac{Q_i}{Q_i-Q_j}-\frac1{P_i-P_j}=-\frac{\kappa_{ij}}{\beta P_i},
+\end{equation}
+and therefore $\dfrac{F_{aab}F_{aac}}{w_{aa}w_{ab}w_{ac}}=\dfrac{\kappa_{ab}\kappa_{ac}}{\beta^2P_a^2w_{aa}}=\dfrac{\kappa_{ab}\kappa_{ac}}{\lambda_a}$, since $\beta^2P_a^2w_{aa}=P_aQ_a$. The second divided difference is
+$F_{123}=\dfrac{A}{\beta(1-\beta)\prod_{i<j}(P_j-P_i)}$, and $w_{12}w_{23}w_{31}=(\beta(1-\beta))^{-3}\prod_{i<j}\frac{Q_i-Q_j}{P_i-P_j}$, so
+$\dfrac{F_{123}^2}{2w_{12}w_{23}w_{31}}=\dfrac{\beta(1-\beta)A^2}{2D_{12}D_{23}D_{31}}$ (the product $D_{12}D_{23}D_{31}$ equals $\prod_{i<j}(P_i-P_j)(Q_i-Q_j)$). This is \eqref{eq:kappaform}.
+
+For \eqref{eq:twopoint}, $3\hs(\lambda_a,\lambda_a,\lambda_b)=2h(\lambda_a,\lambda_a,\lambda_b)+h(\lambda_b,\lambda_a,\lambda_a)$. By \eqref{eq:Fw} the first term of $h$ is, for every ordering,
+$\dfrac{F_{aab}^2}{2w_{aa}w_{ab}^2}=\dfrac{\kappa_{ab}^2}{2\lambda_a}$. The second term of $h(\lambda_b,\lambda_a,\lambda_a)$ is $\kappa_{ba}^2/\lambda_b$. In $h(\lambda_a,\lambda_a,\lambda_b)$ it is
+$\dfrac{F_{aaa}}{w_{aa}^2}\cdot\dfrac{F_{aab}}{w_{ab}}$ with $F_{aaa}=\frac12\varphi''(P_a)=\frac{1-2\beta}{2\beta P_a}w_{aa}$, i.e.\
+$-\dfrac{(1-2\beta)\kappa_{ab}}{2\beta^2P_a^2w_{aa}}=-\dfrac{(1-2\beta)\kappa_{ab}}{2\lambda_a}$. Adding up gives \eqref{eq:twopoint}.
+\end{proof}
+
+\subsection*{The hyperbolic form} From now on
+\[d=2\beta-1,\qquad D=d^2,\qquad \lambda_i=e^{2\sigma_i},\qquad X_i=e^{-2\sigma_i}=1/\lambda_i,\]
+so $\beta=\frac{1+d}2$, $P_i=e^{(1+d)\sigma_i}$, $Q_i=e^{(1-d)\sigma_i}$. For $d\notin\{0,\pm1\}$ let
+\begin{equation}
+\ph(s)=\frac{\sinh s-\frac1d\sinh ds}{1-d^2},\qquad K=\ph/\ph',\qquad \ph'(s)=\frac{\cosh s-\cosh ds}{1-d^2}.
+\end{equation}
+$\ph$ is odd and $\ph''=d^2\ph+\sinh s$. Its Taylor series is $\sum_{j\ge1}(1+D+\dots+D^{j-1})s^{2j+1}/(2j+1)!$, which is entire in $(s,D)$ and extends the definition to $d\in\{0,\pm1\}$. For $D\ge0$
+all the coefficients are $\ge0$ and the first is positive, so $\ph,\ph',\ph''>0$ for $s>0$. $K$ is odd; near $0$ it is analytic, $K(s)=s/3+\dots$.
+
+\begin{proposition}\label{prop:H}
+For pairwise distinct $\sigma_i$ and $d\notin\{0,\pm1\}$, $\hs_\beta=d^2H(\sigma;D)$ with
+\begin{equation}\label{eq:H}
+H=\frac{\big(\sum_{\mathrm{cyc}}e^{-\sigma_k}\ph(\sigma_i-\sigma_j)\big)^2}{16\,\ph'(\sigma_1-\sigma_2)\ph'(\sigma_2-\sigma_3)\ph'(\sigma_3-\sigma_1)}
+-\frac1{12}\sum_aX_a\big(K(\sigma_b-\sigma_a)-1\big)\big(K(\sigma_c-\sigma_a)-1\big),
+\end{equation}
+the first sum over the cyclic $(i,j,k)$. Moreover
+\begin{equation}\label{eq:kappaK}
+\kappa_{ab}=\tfrac d2\big(1-K(\sigma_b-\sigma_a)\big),\qquad \kappa_{ab}+\kappa_{ba}=d .
+\end{equation}
+For $d\ne0,\pm1$, $H$ extends smoothly to coincident $\sigma_i$, since $\hs_\beta$ is smooth.
+\end{proposition}
+\begin{proof}
+Let $\delta=\sigma_i-\sigma_j$. Then $D_{ij}=4e^{\sigma_i+\sigma_j}\sinh\frac{(1+d)\delta}2\sinh\frac{(1-d)\delta}2=2(1-d^2)e^{\sigma_i+\sigma_j}\ph'(\delta)$. Next,
+$A=\sum_{\mathrm{cyc}}(P_iQ_j-P_jQ_i)=2\sum_{\mathrm{cyc}}e^{\sigma_i+\sigma_j}\sinh(d\delta_{ij})$. Insert $\sinh(d\delta)=d\sinh\delta-d(1-d^2)\ph(\delta)$ and use
+$\sum_{\mathrm{cyc}}e^{\sigma_i+\sigma_j}\sinh\delta_{ij}=\frac12\sum_{\mathrm{cyc}}(e^{2\sigma_i}-e^{2\sigma_j})=0$ to get $A=-2d(1-d^2)\sum_{\mathrm{cyc}}e^{\sigma_i+\sigma_j}\ph(\delta_{ij})$. With
+$\beta(1-\beta)=\frac{1-d^2}4$ the first term of \eqref{eq:kappaform} becomes
+\[\frac{(1-d^2)}{8}\cdot\frac{4d^2(1-d^2)^2\big(\sum e^{\sigma_i+\sigma_j}\ph\big)^2}{8(1-d^2)^3e^{2(\sigma_1+\sigma_2+\sigma_3)}\prod\ph'}=\frac{d^2}{16}\,\frac{\big(\sum e^{-\sigma_k}\ph(\delta_{ij})\big)^2}{\prod\ph'} .\]
+For \eqref{eq:kappaK}, let $s=\sigma_b-\sigma_a$. With $\frac1{e^x-1}=\frac12(\coth\frac x2-1)$,
+$\kappa_{ab}=\frac{(1-d)/2}{e^{(1-d)s}-1}-\frac{(1+d)/2}{e^{(1+d)s}-1}=\frac d2+\frac14\big[(1-d)\coth\frac{(1-d)s}2-(1+d)\coth\frac{(1+d)s}2\big]$, and the bracket, over its common denominator
+$\sinh\frac{(1+d)s}2\sinh\frac{(1-d)s}2=\frac12(\cosh s-\cosh ds)$, has numerator $\frac12[(1-d)(\sinh s+\sinh ds)-(1+d)(\sinh s-\sinh ds)]=\sinh ds-d\sinh s$. So the bracket is
+$-2d\,\ph(s)/\ph'(s)$. The sum rule follows as $K$ is odd. Inserting $\kappa_{ab}\kappa_{ac}=\frac{d^2}4(K-1)(K-1)$ gives the second term.
+\end{proof}
+
+\begin{proposition}[translation]\label{prop:translate}
+Let $d\ne0,\pm1$. Then:
+\begin{enumerate}
+\item \eqref{62} for all $x<y$ (strictly) $\iff$ the qubit curvature $S_\beta(\lambda,1-\lambda)$ has $\lambda$-derivative $>0$ for $0<\lambda<\frac12$.
+\item \eqref{63} $\iff$ $(e^{2s}\psi'(s))'\le0$ for all $s\in\R$, with $\psi=e^{2s}(K-1)(3K+1)-2(K+1)^2$; i.e.\ $2\psi'+\psi''\le0$.
+\item \eqref{64} $\iff$ $(e^{-2\sigma_1}\partial_{\sigma_1}-e^{-2\sigma_2}\partial_{\sigma_2})H\ge0$ for $\sigma_1<\sigma_2$ and all $\sigma_3$.
+\item \eqref{65} $\iff$ $(\partial_{\sigma_1}^2-2\partial_{\sigma_1})H\le0$ for all $\sigma$.
+\end{enumerate}
+In (3) and (4) it is enough to check pairwise distinct $\sigma_i$.
+\end{proposition}
+\begin{proof}
+(1) The right side of \eqref{62} is $\frac13(\partial_x-\partial_y)\mathcal P(x,y)$ with $\mathcal P(x,y)=3\hs(x,x,y)+3\hs(x,y,y)$, since $\partial_x\hs(x,x,y)=2\hs'(x,x,y)$ and so on. By
+\eqref{eq:closed}, $S_\beta(\lambda,1-\lambda)=\mathcal P(\lambda,1-\lambda)+\frac32$. $(\partial_x-\partial_y)\mathcal P$ is homogeneous of degree $-2$, so its sign on $\{x<y\}$ is determined on $x+y=1$.
+
+(2) Let $q(x)=\hs(x,x,l)$. Then $q'(x)=2\hs'(x,x,l)$, so \eqref{63} says that $q$ is concave. Put $l=e^{2s}x$. By \eqref{eq:twopoint}, \eqref{eq:kappaK} and $1-2\beta=-d$ (here $a$ is $x$, $b$ is $l$),
+\[q=\frac{e^{2s}}l\Big(\frac{d^2}8(1-K)^2-\frac{d^2}6(1-K)\Big)-\frac{d^2}{12\,l}(1+K)^2=\frac{d^2}{24\,l}\psi(s),\]
+because $3(1-K)^2-4(1-K)=(K-1)(3K+1)$. Since $x=le^{-2s}$, $\frac d{dx}=-\frac{e^{2s}}{2l}\frac d{ds}$ and $q''(x)=\frac{d^2}{96\,l^3}e^{2s}(e^{2s}\psi')'$.
+
+(3), (4) Use $\partial_\lambda=\frac12e^{-2\sigma}\partial_\sigma$, so that $\partial_\lambda^2=\frac14e^{-4\sigma}(\partial_\sigma^2-2\partial_\sigma)$, and $d^2>0$. \eqref{64} says $(\partial_x-\partial_y)\hs(x,y,l)\ge0$, and
+\eqref{65} says that $\hs'(\cdot,l,m)$ is nonincreasing, i.e.\ $\partial_x^2\hs\le0$. Distinct arguments are dense and $\hs$ is smooth.
+\end{proof}
+
+\subsection*{The per-gap form used in the tails} In this subsection $y,g,G,Y,p,m$ denote per-gap quantities (not the objects of Sections 2--4 with the same letters). For $k\ne 0$ let $B(k,s)=k/(e^{ks}-1)$ and $B(0,s)=1/s$. For a gap $s>0$ put
+\[y=B(1-d,s),\quad g=y+1-d,\quad G=B(1+d,s),\quad Y=G+1+d,\quad p=y-G,\quad m=Y-g .\]
+
+\begin{proposition}\label{prop:gy}
+Let $\sigma_a<\sigma_b<\sigma_c$, with gaps $u=\sigma_b-\sigma_a$, $v=\sigma_c-\sigma_b$, $w=u+v$, and $d\ne0,\pm1$. Put $\Pi=Y_u+G_v$, $\Theta=g_u+y_v$. Then $p=d(1-K)$, $m=d(1+K)$ for each gap;
+\begin{equation}\label{eq:gy}
+96\,d^2H=\frac{12X_b\,(Y_uy_v-g_uG_v)^2}{\Pi\,\Theta}-8\big(X_ap_up_w+X_bm_up_v+X_cm_vm_w\big);
+\end{equation}
+$y_w=y_uy_v/\Theta$, $g_w=g_ug_v/\Theta$, $Y_w=Y_uY_v/\Pi$, $G_w=G_uG_v/\Pi$; and $y'=g'=-gy$, $Y'=G'=-GY$ in the gap variable.
+\end{proposition}
+\begin{proof}
+For $i<j$ and $s=\sigma_j-\sigma_i$ we have
+\[y=\frac{(1-d)Q_i}{Q_j-Q_i},\quad g=\frac{(1-d)Q_j}{Q_j-Q_i},\quad G=\frac{(1+d)P_i}{P_j-P_i},\quad Y=\frac{(1+d)P_j}{P_j-P_i}.\]
+So $p=2\kappa_{ij}=d(1-K)$ and, as $y-g=d-1$ and $Y-G=1+d$, $m=Y-g=2d-p=d(1+K)$. The last sum of \eqref{eq:H} becomes the last bracket of \eqref{eq:gy}; for the middle point,
+$(K(-u)-1)(K(v)-1)=(1+K(u))(1-K(v))$. Next,
+\begin{align*}
+Y_uy_v-g_uG_v&=(1-d^2)\lambda_b\Big(\frac1{(P_b-P_a)(Q_c-Q_b)}-\frac1{(Q_b-Q_a)(P_c-P_b)}\Big)=-\frac{(1-d^2)\lambda_bA}{D_{ab}D_{bc}},\\
+\Pi&=\frac{(1+d)P_b(P_c-P_a)}{(P_b-P_a)(P_c-P_b)},\qquad\Theta=\frac{(1-d)Q_b(Q_c-Q_a)}{(Q_b-Q_a)(Q_c-Q_b)},
+\end{align*}
+using $A=(P_b-P_a)(Q_c-Q_b)-(P_c-P_b)(Q_b-Q_a)$. Hence $(Y_uy_v-g_uG_v)^2/(\Pi\Theta)=(1-d^2)\lambda_bA^2/(D_{ab}D_{bc}D_{ac})$, and since the first term of \eqref{eq:kappaform} is
+$\frac{1-d^2}8A^2/(D_{ab}D_{bc}D_{ca})$, it contributes $12X_b(\dots)^2/(\Pi\Theta)$ to $96\hs$. The addition rules are immediate from the displayed fractions, for example
+$y_uy_v/\Theta=(1-d)Q_a/(Q_c-Q_a)=y_w$. The derivative rules follow from $\partial_sB(k,s)=-B(B+k)$ with $y+(1-d)=g$ and $G+(1+d)=Y$.
+\end{proof}
+
+\section{The qubit inequality (62)}
+
+\begin{theorem}\label{thm:62}
+For every $\beta\in\R\setminus\{0,\frac12,1\}$, \eqref{62} holds strictly for $\hs_\beta$. In particular, for $n=2$ the scalar curvature $S_\beta$ increases strictly under mixing.
+\end{theorem}
+\begin{proof}
+Let $y/x=e^{2s}$, $s>0$, $x+y=1$, so $\frac1x=2\cosh s\,e^{s}$ and $\frac1y=2\cosh s\,e^{-s}$. By \eqref{eq:twopoint} and $1-2\beta=-d=-\kappa_{xy}-\kappa_{yx}$,
+\[\mathcal P=3\hs(x,x,y)+3\hs(x,y,y)=\frac12\Big(\frac{\kappa_{xy}^2-2d\kappa_{xy}}x+\frac{\kappa_{yx}^2-2d\kappa_{yx}}y\Big)=\frac12\Big(\frac{\kappa_{yx}^2-d^2}x+\frac{\kappa_{xy}^2-d^2}y\Big),\]
+and with \eqref{eq:kappaK}, $\kappa_{xy}=\frac d2(1-K)$, $\kappa_{yx}=\frac d2(1+K)$, $K=K(s)$,
+\begin{equation}\label{eq:S2}
+S_\beta=\frac32+\frac{d^2}2\big(J^2-4\cosh^2s+1\big),\qquad J=K\cosh s+\sinh s .
+\end{equation}
+We show that $\mathcal G=J^2-4\cosh^2s$ has $\mathcal G'<0$ on $(0,\infty)$; as $s$ decreases when $x$ increases to $\frac12$, this is the condition in Proposition~\ref{prop:translate}(1). $\mathcal G$ depends on $d$ only
+through $d^2$, so let $d>0$.
+
+Let $W=\ph'\sinh s-\ph\cosh s$ and $\omega=W/\ph'=\sinh s-K\cosh s$. Then $W(0)=0$ and, by $\ph''=d^2\ph+\sinh s$, $W'=(\ph''-\ph)\sinh s=\frac1d\sinh(ds)\sinh s>0$. So $\omega>0$. Also $J=2\sinh s-\omega$, and
+$J>0$ because $\ph,\ph'>0$; hence $0<\omega<2\sinh s$. A direct computation gives
+\[\mathcal G'=-4\omega\cosh s-2\omega'(2\sinh s-\omega).\]
+It remains to see that $\omega'\ge0$. $W$ and $\ph'$ vanish at $0$ and $\ph''>0$, so by the monotone form of l'H\^opital's rule $\omega$ is nondecreasing if $W'/\ph''$ is. For $d\ne1$,
+\[\frac{W'}{\ph''}=\frac{1-d^2}{d\,q(s)},\qquad q(s)=\frac1{\sinh ds}-\frac d{\sinh s},\qquad q'(s)=d\,\big(\mathsf m(s)-\mathsf m(ds)\big),\quad \mathsf m(x)=\frac{\cosh x}{\sinh^2x},\]
+with $\mathsf m$ strictly decreasing. If $d<1$ then $q>0$ and $q'<0$; if $d>1$ then $q<0$ and $q'>0$. In both cases $(1-d^2)/q$ is positive and increasing. (Signs of $q$: $\sinh s>d\sinh ds$ for $d<1$, and
+the reverse for $d>1$.) Therefore $\mathcal G'\le-4\omega\cosh s<0$.
+\end{proof}
+
+\section{The inequality (63)}
+
+\begin{theorem}\label{thm:63}
+Let $0<d\le3$. Then $2\psi'+\psi''<0$ on $\R\setminus\{0\}$ and $e^{2s}\psi'$ is strictly decreasing on $\R$. In particular \eqref{63} holds for $\hs_\beta$ when $\beta\in[-1,2]\setminus\{0,\frac12,1\}$.
+\end{theorem}
+\noindent The one-variable statement is machine-checked in Lean (\texttt{lean63/Ineq63.lean}: \texttt{wyd\_ineq63}, and \texttt{bkm\_ineq63} for $d=1$). Its translation to \eqref{63} is Proposition~\ref{prop:translate}(2), proved by hand.
+\begin{proof}
+Let $s>0$ and $k=\ph/\ph'$, $S=\ph''/\ph'$, $v=1-kS$, $u=-v'$, $D=d^2$, $Y=(1-k^2)(1-Dk^2)$.
+
+\emph{An autonomous system.} Let $J=(\ph'')^2-D(\ph')^2+(\ph')^2-D\ph^2$. Since $\ph''-D\ph=\sinh$ and $\ph'''-D\ph'=\cosh$, we have $J'=2\ph''\cosh s+2\ph'\sinh s=(2\ph'\cosh s)'$, so
+$J=2\ph'\cosh s$. Dividing by $(\ph')^2$,
+\begin{gather}
+k'=v=1-kS,\qquad S'=\tfrac12(1+D-S^2-Dk^2),\label{eq:flow}\\
+(S\mp1)^2-D(1\mp k)^2=2e^{\mp s}/\ph',\qquad\text{so}\quad e^{-2s}=\frac{(S-1)^2-D(1-k)^2}{(S+1)^2-D(1+k)^2}.\label{eq:E}
+\end{gather}
+From \eqref{eq:flow},
+\begin{equation}\label{eq:u}
+2ku=4v-3v^2-Y=(1-v)(3v-1)+k^2(1+D-Dk^2),\qquad u'=-2Su+v(1+D-2Dk^2).
+\end{equation}
+
+\emph{Signs.} $\ph,\ph',\ph''>0$, and $v>0$ because $(v\ph'^2)'=W>0$, with $W$ as in the proof of Theorem~\ref{thm:62}. As $s\to0^+$, $k\to0$, $v\to\frac13$ and $S\to\infty$. By \eqref{eq:E}, $S\ne1$, so $S>1$; then
+$(\ph'-\ph)'=\ph''-\ph'>0$ gives $k<1$, and \eqref{eq:E} gives $S-1>d(1-k)$, i.e.
+\begin{equation}\label{eq:vup}
+0<v<(1-k)(1-dk),\qquad\text{in particular } dk<1.
+\end{equation}
+Since $2Dk^2\le1+D$, $(u\ph'^2)'=\ph'^2v(1+D-2Dk^2)\ge0$, and $u\ph'^2\to0$ at $0$; so $u\ge0$, and hence $v\le\frac13$.
+
+\emph{Barrier principle.} If $f$ is differentiable on $(0,\infty)$, positive near $0$, and $f'>0$ wherever $f=0$, then $f\ge0$.
+
+(Q) $v\ge\frac14(1-9k^2)$. Here $f=v-\frac14(1-9k^2)$ tends to $\frac1{12}$. If $f=0$ then $1-9k^2=4v>0$, and by \eqref{eq:u} and $D\le9$, $2kf'=2k(\frac92kv-u)\ge\frac1{16}(1-9k^2)(3-7k^2)>0$.
+
+(G) $Y\le2(1+k)v+6v^2$. Here $f=2(1+k)v+6v^2-Y$ tends to $\frac13$. If $f=0$, eliminating $D$ and $u$ by \eqref{eq:u},
+\[k(1-k^2)f'=v^2\big((42-30k^2)v-(1-3k)(7-5k)(1+k)\big).\]
+This is positive for $k\ge\frac13$. For $k<\frac13$, (Q) bounds the bracket below by $\frac12(1-3k)(7+59k-5k^2-45k^3)>0$.
+
+(C) $u\le2v$ if $k>\frac13$. By \eqref{eq:u}, $2k(2v-u)=3v^2-4(1-k)v+Y=:c(v)$. Let $\delta=dk$, so $Y=(1-k^2)(1-\delta^2)$. If $\delta\ge\frac13$, then $v<v^*=(1-k)(1-\delta)\le\frac23(1-k)$, where $c$ decreases, and
+$c(v^*)=2(1-k)(1-\delta)k(1-d+2\delta)\ge0$, because $1-d+2dk\ge1-\frac d3\ge0$. If $\delta<\frac13$, then $c\ge(1-k)\big((1+k)(1-\delta^2)-\frac43(1-k)\big)\ge0$.
+
+(M) $(1-k)v\ge e^{-2s}(3k-1)(1+k)$ if $k>\frac13$. By \eqref{eq:E} and $S=(1-v)/k$ this is
+\[F:=(1-k)v\big((1+k-v)^2-Dk^2(1+k)^2\big)-(3k-1)(1+k)\big((1-k-v)^2-Dk^2(1-k)^2\big)\ge0 .\]
+With $A=(1+k)v-(3k-1)(1-k)$,
+\begin{align*}
+F&=A\,(3v^2-4(1-k)v+Y)+v\big(2(3k-1)^2(1-k)+2k(5-7k)v-(2+4k)v^2\big)\\
+&=-A\,(2(1+k)v+6v^2-Y)+v^2\big(7-22k+19k^2+(7+5k)v\big).
+\end{align*}
+If $A<0$ use the second form, (G), and $22^2<4\cdot7\cdot19$. If $A\ge0$ use the first form and (C): its last bracket $b(v)$ is concave in $v$ and $b(0)\ge0$; for $k\ge\frac12$, $v\le1-k$ and $b(1-k)=4k(1-k)(2k-1)\ge0$; for $k\le\frac12$, $v\le\frac13$ and
+$b(\frac13)=-18k^3+\frac{76}3k^2-\frac{100}9k+\frac{16}9>0$ on $[\frac13,\frac12]$.
+
+\emph{Negative side.} $K(-s)=-k$, $K'(-s)=v$, $K''(-s)=u$, and with $E=e^{-2s}$,
+\begin{multline*}
+-(2\psi'+\psi'')(-s)=8(1-k)v+4v^2+4(1-k)u\\+E\big(8(1-3k)(1+k)+12(3k+1)v+2(3k+1)u-6v^2\big).
+\end{multline*}
+Here $12(3k+1)v\ge6v^2$ and $u\ge0$, and $8(1-k)v+8E(1-3k)(1+k)\ge0$, by (M) if $k>\frac13$ and trivially otherwise; $4v^2>0$ is left.
+
+\emph{Positive side.} $-E(2\psi'+\psi'')(s)=R_0+ER_1$ with $R_0=8(3k+1)(1-k)+12(1-3k)v-6v^2-2(1-3k)u$ and $R_1=8(k+1)v+4v^2-4(k+1)u$. If $k>\frac13$, then $R_1\ge0$ by (C), and $u\ge0$, $v\le1-k$ give $R_0\ge(1-k)(14-6k)>0$.
+If $k\le\frac13$, \eqref{eq:u} with $v\le\frac13$ and $D\le9$ gives $u\le\frac12k(10-9k^2)$; then $R_0>0$ and $R_0+R_1>0$, because
+$8(3k+1)(1-k)-\frac23-k(1-3k)(10-9k^2)$ and $8(3k+1)(1-k)-k(3-k)(10-9k^2)$ are positive on $[0,\frac13]$; and $0<E<1$.
+
+Finally $K$ is $C^1$ at $0$, so $e^{2s}\psi'$ is continuous, with negative derivative off $0$.
+\end{proof}
+
+\section{The inequalities (64) and (65)}\label{sec:6465}
+
+\begin{theorem}\label{thm:6465}
+Let $0<d\le3$, $d\ne1$. Then, with $H$ as in Proposition~\ref{prop:H},
+\begin{itemize}
+\item[(b)] $(e^{-2\sigma_1}\partial_{\sigma_1}-e^{-2\sigma_2}\partial_{\sigma_2})H\ge0$ for distinct $\sigma_i$ with $\sigma_1<\sigma_2$,
+\item[(c)] $(\partial_{\sigma_1}^2-2\partial_{\sigma_1})H\le0$ for distinct $\sigma_i$.
+\end{itemize}
+\end{theorem}
+\begin{proof}
+\emph{Newton expansion.} For real $E_1,\dots,E_k$ the divided difference of $E\mapsto e^{Eu}$,\[[E_1,\dots,E_k]e^{\,\cdot\,u}=u^{k-1}\int_{\Delta_{k-1}}e^{u\sum t_iE_i}\,dt,\]is positive for $u>0$, in whatever order, coincident nodes included. If
+$f(u)=\sum_Ec_Ee^{Eu}$ with all $E$ among $E_1,\dots,E_k$, then
+\begin{equation}\label{eq:newton}
+f(u)=\sum_{i=1}^kf_{i}(0)\,[E_1,\dots,E_i]e^{\,\cdot\,u},\qquad f_1=f,\quad f_{i+1}=f_i'-E_if_i,\qquad f_i(0)=\sum_Ec_E\prod_{l<i}(E-E_l),
+\end{equation}
+so $f\ge0$ on $[0,\infty)$ if every $f_i(0)\ge0$. (Directly: $(e^{-E_iu}f_i)'=e^{-E_iu}f_{i+1}$ and $f_{k+1}=0$.) For $f(u,v)=\sum c\,e^{Eu+Fv}$ the same holds on the quadrant with the coefficients $f_{ij}(0,0)=\sum c\prod_{l<i}(E-E_l)\prod_{l<j}(F-F_l)$.
+
+\emph{The numerators.} Let $p,q>0$ with $d=q/p$, $F(s)=p\sinh ds-q\sinh s$ and $G(s)=q(\cosh ds-\cosh s)$. By Proposition~\ref{prop:H},
+\begin{gather*}
+H=\frac{A}{24p^2\prod2G},\qquad A=3q(q^2-p^2)N^2-2p^2\sum_{\rm cyc}e^{-2\sigma_1}\Phi(\sigma_2-\sigma_1)\Phi(\sigma_3-\sigma_1)\,2G(\sigma_2-\sigma_3),
+\end{gather*}
+$\Phi=2F-2G$, $N=\sum_{\rm cyc}e^{-\sigma_3}2F(\sigma_1-\sigma_2)$, $\prod 2G$ over the three pairs. Order the points, with gaps $u,v>0$. Clearing denominators in (b) and (c), for each of the three positions of the third (resp.\ differentiated) variable, leaves
+a positive exponential times $\sum c\,e^{(i+jd)u+(i'+j'd)v}$ with $c\in\mathbb Z[p,q]$ homogeneous; the cleared denominator is a square in (b), and in (c) it has the sign of $2G$, which is that of $d-1$. The six numerators have the following sizes.
+\begin{center}
+\begin{tabular}{lcccccc}
+\toprule
+& (c), 1 & (c), 2 & (c), 3 & (b), 1 & (b), 2 & (b), 3\\
+\midrule
+terms & 616 & 616 & 616 & 554 & 554 & 554\\
+exponents in $u$, $v$ & 55, 28 & 28, 28 & 28, 55 & 28, 36 & 36, 36 & 36, 28\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\emph{The check.} For $0<d<1$ put $p=1+t$, $q=t$, $t=d/(1-d)>0$. For $1<d\le3$ put $p=1+t$, $q=3+t$, $t=(3-d)/(d-1)\ge0$. Replacing $(u,v)$ by $(pu,pv)$, the exponents $ip+jq$ and the coefficients $c$ are polynomials in $t$ with integer coefficients, so
+the Newton coefficients are too. Use one fixed order of the nodes in each range: increasing at $d=0.501$, resp.\ at $d=2.001$. In all twelve cases, \emph{every Newton coefficient is a polynomial in $t$ with
+nonnegative integer coefficients} ($10\,928$ nonzero Newton coefficients, $470\,258$ integer coefficients counted from the lowest power, no negative one). Hence the numerators are nonnegative.
+\end{proof}
+
+The check is integer arithmetic and takes about two seconds in Python. It is sharp: just above $d=3$ negative Newton coefficients appear in (c) 2, (c) 3 and (b) 1, the cases that degenerate at $d=3$.
+
+\section{Conclusion and verification}\label{sec:status}
+
+Combining Theorems~\ref{thm:closed}, \ref{thm:reduction}, \ref{thm:62}, \ref{thm:63}, \ref{thm:6465} and Proposition~\ref{prop:translate}:
+
+\begin{corollary}\label{cor:main}
+Let $\beta\in[-1,2]\setminus\{0,\frac12,1\}$ and $n\ge2$. The scalar curvature of $(\Dn,g^\beta)$ increases strictly under mixing: $S_\beta(\varrho)<S_\beta(\rho)$ if $\rho$ is more mixed than $\varrho$ and the spectra differ.
+\end{corollary}
+
+For $\beta=\frac12$, $\hs_\beta=0$ and $S_\beta$ is constant. $S_\beta$ depends on $\beta$ only through $d^2$, so $d\in(0,3]$, $d\ne1$, covers $\beta\in[-1,2]\setminus\{0,\frac12,1\}$. The limits $\beta\to0,1$ are the Kubo--Mori case (Petz's conjecture).
+
+\subsection*{Lean} The folder \texttt{lean/WYD} contains a Lean~4 proof of Corollary~\ref{cor:main} with no hypothesis beyond those of the statement (\texttt{wyd\_curvature\_lt\_of\_isMajorizedBy}). It includes
+Theorem~\ref{thm:closed} for all $\beta\ne0,1$ (\texttt{scalarCurvature\_wydMetric}), the reduction for any symmetric smooth $\hs$, \eqref{62}--\eqref{65} for $\beta\in[-1,2]\setminus\{0,\frac12,1\}$
+(\texttt{wyd\_62}, \dots, \texttt{wyd\_65}), Proposition~\ref{prop:H} (\texttt{wydHs\_eq\_hypH}) and the parts of Proposition~\ref{prop:translate} that are used. The metric is defined as the pullback of a constant pairing by
+$\rho\mapsto(\rho^\beta,\rho^{1-\beta})$, which is \eqref{eq:metric} (\texttt{wydMetric\_apply}, \texttt{wydMetric\_diag\_spectral}). Only the axioms \texttt{propext},
+\texttt{Classical.choice} and \texttt{Quot.sound} are used, and there is no \texttt{native\_decide}: the twelve checks of Theorem~\ref{thm:6465} are evaluated by the kernel (\texttt{C64\_*}, \texttt{C65\_*}), including the construction of the numerators, and the
+Newton argument is proved in \texttt{NewtonSound}, \texttt{NewtonEP}, \texttt{NewtonNum}. The Lean proof of \eqref{62} replaces l'H\^opital's rule by $\omega'=k(S\cosh s-\sinh s)>0$, with $k,S$ as in Section~7 and $S>1$. Not in Lean: Proposition~\ref{prop:gy}, which is no longer used.
+
+\subsection*{The conjecture with the definitions of \texorpdfstring{\cite{gi}}{the paper}} The file \texttt{Literal.lean} states Conjecture~8.1 of \cite{gi} with the definitions of that paper and proves it (\texttt{conjecture81}): the density matrices (\texttt{density}, Definition~2.5),
+the order by partial sums of the decreasing rearrangements (\texttt{MoreMixed}, Definitions~2.3 and~2.6), Schur-increasing functions (\texttt{SchurIncreasingOn}, Definition~2.8, non-strict, spectra that coincide up to order included), $f_p$ of Definition~6.1, and the metric
+$\operatorname{Tr}(A\,c_{f_p}(L_\rho,R_\rho)(B))$ on the traceless Hermitian matrices (\texttt{IsWYDMetric}, Definition~6.2); $c_{f}(L_\rho,R_\rho)$ is the linear map that multiplies $uv^*$ by $c_f(a,b)$ when $\rho u=au$, $\rho v=bv$ (\texttt{cLR\_add}, \texttt{cLR\_smul}, \texttt{cLR\_vecMulVec}).
+The scalar curvature at $\rho$ is computed in the affine chart at $\rho$; any other affine chart gives the same (\texttt{scal\_eq\_chart}). The scalar curvature is Schur-increasing for $p\le-1$ and for $p\ge\frac12$, $p\ne1$, and every $n$ (\texttt{wyd\_schurIncreasing}); so any $\varepsilon>0$ will do. It is strictly Schur-increasing if moreover $p\ne2$ (\texttt{wyd\_strictly}).
+\emph{The case $p=1$} (the same metric as $p=\infty$; $f_1=(x-1)/\log x$, the Kubo--Mori metric) is Petz's conjecture, proved in the PetzCurvature library. Its modules are rebuilt in \texttt{lean/KM} on the same shared files as the rest (only imports change), and \texttt{KuboMori.lean} shows that its BKM form $\int_0^1\operatorname{Re}\operatorname{tr}(A R B R)\,ds$, $R=((1-s)\rho+s)^{-1}$, is the metric of Definition~6.2 at $p=1$ at every state (\texttt{bkmForm\_eq}). So the scalar curvature is Schur-increasing for every $p\le-1$ and every $p\ge\frac12$ (\texttt{wyd\_schurIncreasing\_all}), strictly for $p\ne2$ (\texttt{wyd\_strictly\_all}); at $p=1$ its value at $I/n$ is Petz's $\frac18(n^2-1)(n^2-4)$ (\texttt{scal\_kuboMori\_uniform}). That these $p$ are exactly the ones for which $f_p$ is operator monotone (Theorem~6.1 of \cite{gi}) is also formalized (\texttt{Theorem61.lean}, \texttt{theorem61}, with the definition of \cite{gi} over $n\times n$ matrices, normalized and symmetric): for $p\ge1$ and $p\le-1$, $1/f_p$ is an average over $[0,1]^2$ of inverses of operator geometric means of the operator monotone functions $1-s+sx$ and $x/(1-s+sx)$, so $f_p$ is operator monotone in every unital C$^*$-algebra; $\frac12\le p<1$ follows from $f_p=f_{\tilde p}$; for $p\in(0,\frac12)$, $f_p(x)\to0$ as $x\to\infty$, and $p\in(-1,0)$ reduces to it. Controls in the same file: the metric exists, is symmetric and positive definite at every state (\texttt{exists\_isWYDMetric}, \texttt{IsWYDMetric.symm}, \texttt{IsWYDMetric.pos});
+at $p=2$ the curvature is $\frac14(n^2-1)(n^2-2)$ (\texttt{scal\_wigner\_yanase}), which fixes the normalization and shows that strictness fails there; for $p\ne1,2$ the state $I/n$ has strictly larger curvature than every other one (\texttt{scal\_lt\_uniform}), so the hypotheses can be met and the direction is the right one.
+
+\subsection*{Earlier computer-assisted proof} Before Theorem~\ref{thm:6465}, (b) and (c) were certified by interval arithmetic for every $d\in[0,3]$ (\texttt{NOTES.md}, Steps 12--14; $351\,624$ Arb boxes, no failures; Proposition~\ref{prop:gy} is the form used for the tails). That computation is now
+redundant and serves only as an independent check, as do Steps 9, 10 and 15 for \eqref{63}.
+
+\subsection*{Review} None of this has been independently reviewed by a person. Lean checks the proof of the formal statement; that the formal statement is the conjecture still has to be read. The shortest way is \texttt{Literal.lean}, whose definitions are those of \cite{gi}; what it takes from elsewhere is the scalar curvature of a metric in a chart (\texttt{AlphaCurvature/Curvature/Basic.lean}) and the space of traceless Hermitian matrices.
+At random non-diagonal states ($n=2,3$) the Lean definitions, the metric with $f_p$, Dittmann's formula (Theorem~5.3 of \cite{gi}) and \eqref{eq:closed} were computed separately and agree (\texttt{fidelity/fidelity.py}); a search for counterexamples by descent (1800 runs, $n\le6$) found none, while the same search finds one for the Bures metric in 36 of 36 runs (\texttt{fidelity/adversary.py}). All compiled files, and the AlphaCurvature files they use, were replayed through the kernel (\texttt{leanchecker}'s replay, one module at a time, on Lean 4.36.0: 37 WYD, 24 AlphaCurvature and 20 \texttt{KM} modules, no failures; not Mathlib). A false theorem compiled with the kernel switched off is rejected by the same replay.
+The displayed identities of Sections 3, 5 and 6 have also been checked by a script in the \texttt{checks} folder, \texttt{reduction\_check.py} (27 checks: the single-gap and divided-difference identities symbolically in
+$\beta$, the hyperbolic forms at 300 random points to $10^{-55}$ or better, the contraction formula on a random orthonormal basis, and \eqref{eq:closed} against brute-force curvature). The numerators of Theorem~\ref{thm:6465} agree with an independent evaluator at 120 random points to $10^{-135}$, and an independent implementation of the check finds the same signs and detects 36 of 36 planted coefficient errors.
+
+\begin{thebibliography}{9}
+\bibitem{bhatia} R.~Bhatia, \emph{Matrix Analysis}, Springer, 1997. (Chapters II and V: majorization; Daleckii--Krein formula.)
+\bibitem{dittmann} J.~Dittmann, \emph{On the curvature of monotone metrics and a conjecture concerning the Kubo--Mori metric}, Linear Algebra Appl.\ 315 (2000) 83--112, arXiv:quant-ph/9906009.
+\bibitem{gi} P.~Gibilisco and T.~Isola, \emph{On the monotonicity of scalar curvature in classical and quantum information geometry}, J.\ Math.\ Phys.\ 46 (2005), arXiv:math-ph/0407007. (Conjecture 8.1.)
+\bibitem{hp} H.~Hasegawa and D.~Petz, \emph{Non-commutative extension of information geometry II}, in: Quantum Communication, Computing, and Measurement, Plenum, 1997. (Only for the range $-1\le\beta\le2$; not used in the proofs.)
+\bibitem{shima} H.~Shima, \emph{The Geometry of Hessian Structures}, World Scientific, 2007.
+\end{thebibliography}
+
+\end{document}
